@@ -51,14 +51,12 @@ class _RecipeState extends State<Recipe> {
       })
     );
     if(response.statusCode == 200){
-      print(response.body);
       setState(() {});
       Navigator.pop(context);
       fetchData();
       return null;
     }
     else{
-      print(response.body);
       throw Exception('Failed to update record'); }
   }
   Future<List> fetchData() async {
@@ -163,6 +161,46 @@ class _RecipeState extends State<Recipe> {
             ));
   }
 
+  //function to open alert dialog after clicking on delete button on recipe item in the list. we are passing 'id' to this function so that we can
+  //call function deleteRecipe and pass that id to it.
+  showAlertDelete(BuildContext context, int id)
+  {
+    Widget cancelButton = TextButton(onPressed:  (){ Navigator.of(context).pop();}, child: Text("Cancel"));
+    Widget continueButton = TextButton(onPressed:  (){deleteRecipe(id.toString());}, child: Text("Continue"));
+
+    AlertDialog alertDialog = AlertDialog(
+      title: Text("Alert!"),
+      content: Text("Are you sure you want to delete this Recipe?"),
+      actions: [
+        cancelButton,
+        continueButton
+      ],
+    );
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return alertDialog;
+        }
+    );
+  }
+
+  Future deleteRecipe(String id) async {
+    final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/deleterecipe/'+ id));
+    if (response.statusCode == 200) {
+      print(response.body);
+      setState(() {});
+      Navigator.pop(context);
+      fetchData();
+
+      return null;
+    }
+    else {
+      throw Exception('Failed to delete data');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -203,7 +241,11 @@ class _RecipeState extends State<Recipe> {
                           });
                         }, icon: Icon(Icons.edit))),
                         Expanded(child: IconButton(onPressed: () {}, icon: Image.asset('lib/icons/vegetables.png'))),
-                        Expanded(child: IconButton(onPressed: () {}, icon: Icon(Icons.delete))),
+                        Expanded(child: IconButton(onPressed: () {
+                          setState(() {
+                            showAlertDelete(context, id);
+                          });
+                        }, icon: Icon(Icons.delete))),
                       ],
                     ),
                   ),
