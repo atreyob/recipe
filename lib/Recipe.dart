@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:recipe/login/Button.dart';
+import 'package:recipe/Ingredients.dart';
 
 class Recipe extends StatefulWidget {
     @override
@@ -11,7 +11,7 @@ class Recipe extends StatefulWidget {
 
 class _RecipeState extends State<Recipe> {
 
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();// inbuilt controller
   final TextEditingController _qtyController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
 
@@ -35,7 +35,7 @@ class _RecipeState extends State<Recipe> {
     }
     else{ throw Exception('Failed to create album'); }
   }
-
+  // DELETE THIS TO MAKE THIS LESS COMPLICATED
   Future updateRecipe(int id, String recipe_name, String recipe_quantity, String details) async {
     print('here');
     final response = await   http.post(
@@ -59,6 +59,7 @@ class _RecipeState extends State<Recipe> {
     else{
       throw Exception('Failed to update record'); }
   }
+//ALSO REMoVE THIS
   Future<List> fetchData() async {
     final response = await http.get(
         Uri.parse('http://127.0.0.1:8000/api/getrecipes'));
@@ -158,7 +159,8 @@ class _RecipeState extends State<Recipe> {
                     ),
                   )
                 ],),
-            ));
+            )
+    );
   }
 
   //function to open alert dialog after clicking on delete button on recipe item in the list. we are passing 'id' to this function so that we can
@@ -223,6 +225,7 @@ class _RecipeState extends State<Recipe> {
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               final id = snapshot.data![index]['id'];
+              final itemModal = RecipeModel(snapshot.data![index]['id'], snapshot.data![index]['recipe_name']);
               return Card(margin: EdgeInsets.all(5),
                 child: ListTile(
                   title: Padding(padding: EdgeInsets.symmetric(vertical: 5),
@@ -240,7 +243,9 @@ class _RecipeState extends State<Recipe> {
                             showBottomSheet(id);
                           });
                         }, icon: Icon(Icons.edit))),
-                        Expanded(child: IconButton(onPressed: () {}, icon: Image.asset('lib/icons/vegetables.png'))),
+                        Expanded(child: IconButton(onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) =>Ingredients(recModal: itemModal)));
+                        }, icon: Image.asset('lib/icons/vegetables.png'))),
                         Expanded(child: IconButton(onPressed: () {
                           setState(() {
                             showAlertDelete(context, id);
@@ -262,6 +267,13 @@ class _RecipeState extends State<Recipe> {
       ),
     );
   }
+}
+
+class RecipeModel{
+  final int recipe_id;
+  final String recipe_name;
+
+  const RecipeModel(this.recipe_id, this.recipe_name);
 }
 
 class ResponseObj{

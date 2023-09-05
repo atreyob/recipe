@@ -1,0 +1,141 @@
+@startuml
+set namespaceSeparator ::
+
+class "recipe::Ingredients.dart::Ingredients" {
+  +RecipeModel recModal
+  +State<StatefulWidget> createState()
+}
+
+"recipe::Ingredients.dart::Ingredients" o-- "recipe::Recipe.dart::RecipeModel"
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "recipe::Ingredients.dart::Ingredients"
+
+class "recipe::Ingredients.dart::_IngredientsState" {
+  -TextEditingController _nameController
+  -TextEditingController _qtyController
+  -TextEditingController _carbController
+  -TextEditingController _proteinController
+  -TextEditingController _expiryController
+  -TextEditingController _remarkController
+  +dynamic insertIngredient()
+  +dynamic ingredientData()
+  +dynamic updateIngredient()
+  +void showBottomSheet()
+  +void showAlertDelete()
+  +dynamic deleteIngredient()
+  +Widget build()
+}
+
+"recipe::Ingredients.dart::_IngredientsState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "recipe::Ingredients.dart::_IngredientsState"
+
+class "recipe::Ingredients.dart::IngredientModel" {
+  +int recipe_id
+  +int ing_id
+  +String Ing_name
+  +String Ing_qty
+  +String Ing_carbs
+  +String Ing_proteins
+  +String Ing_expiry
+  +String Ing_remark
+}
+
+class "recipe::login::Button.dart::Button" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "recipe::login::Button.dart::Button"
+
+class "recipe::login::Header.dart::Header" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "recipe::login::Header.dart::Header"
+
+class "recipe::login::InputField.dart::InputField" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "recipe::login::InputField.dart::InputField"
+
+class "recipe::login::InputWrapper.dart::InputWrapper" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "recipe::login::InputWrapper.dart::InputWrapper"
+
+class "recipe::login::LoginPage.dart::LoginPage" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "recipe::login::LoginPage.dart::LoginPage"
+
+class "recipe::main.dart::MyApp" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "recipe::main.dart::MyApp"
+
+class "recipe::Recipe.dart::Recipe" {
+  +State<Recipe> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "recipe::Recipe.dart::Recipe"
+
+class "recipe::Recipe.dart::_RecipeState" {
+  -TextEditingController _nameController
+  -TextEditingController _qtyController
+  -TextEditingController _detailsController
+  +dynamic insertRecipe()
+  +dynamic updateRecipe()
+  +dynamic fetchData()
+  +dynamic getRecipeFields()
+  +void showBottomSheet()
+  +dynamic showAlertDelete()
+  +dynamic deleteRecipe()
+  +Widget build()
+}
+
+"recipe::Recipe.dart::_RecipeState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "recipe::Recipe.dart::_RecipeState"
+
+class "recipe::Recipe.dart::RecipeModel" {
+  +int recipe_id
+  +String recipe_name
+}
+
+class "recipe::Recipe.dart::ResponseObj" {
+  +int status
+  +String message
+  +String data
+}
+
+class "recipe::Recipe.dart::ResponseObject" {
+  +int status
+  +String message
+  +List<RecipeObject> data
+}
+
+class "recipe::Recipe.dart::RecipeObject" {
+  +String recipe_name
+  +String recipe_quantity
+  +String details
+  +Map<String, dynamic> toJson()
+}
+
+class "recipe::SplashScreen.dart::SplashScreen" {
+  +State<SplashScreen> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "recipe::SplashScreen.dart::SplashScreen"
+
+class "recipe::SplashScreen.dart::_SplashScreenState" {
+  +Widget build()
+  +void initState()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "recipe::SplashScreen.dart::_SplashScreenState"
+
+
+@enduml
+PS C:\src\projects\recipe>
