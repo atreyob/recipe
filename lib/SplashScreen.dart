@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:recipe/login/LoginPage.dart';
+import 'package:flutter_auth/Purchase/PurchaseAdd.dart';
+
+import 'Login/LoginPage.dart';
 class SplashScreen extends StatefulWidget{
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     Timer(Duration(seconds: 2), (){
       Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => LoginPage(),
+          builder: (context) => PurchaseAdd(),
       ));
     });
   }

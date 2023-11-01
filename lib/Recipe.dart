@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_auth/Drawer.dart';
 import 'dart:convert';
 
-import 'package:recipe/Ingredients.dart';
+import 'package:flutter_auth/Ingredients.dart';
 
 class Recipe extends StatefulWidget {
     @override
@@ -10,12 +12,19 @@ class Recipe extends StatefulWidget {
 }
 
 class _RecipeState extends State<Recipe> {
+  String typevalue = 'Dietary Restriction';
+  var typeItems =[
+    'Dietary Restriction',
+    'Veg',
+    'Non Veg',
+    'Vegan'
+  ];
 
   final TextEditingController _nameController = TextEditingController();// inbuilt controller
   final TextEditingController _qtyController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
 
-  Future insertRecipe(String recipe_name, String recipe_quantity, String details) async {
+  Future insertRecipe(String recipe_name, String recipe_quantity, String details, String type) async {
     final response = await http.post(
       Uri.parse('http://127.0.0.1:8000/api/addrecipe'),
       headers: <String, String>{
@@ -24,19 +33,31 @@ class _RecipeState extends State<Recipe> {
       body: jsonEncode(<String, String>{
         'name' : recipe_name,
         'quantity': recipe_quantity,
-        'details': details
+        'details': details,
+        'type': type
     }),
     );
   if(response.statusCode == 200){
-       setState(() {});
-       Navigator.pop(context);
-       fetchData();
-       return null;
+    var jsonData = json.decode(response.body);
+    if(jsonData['status'] == 0){
+        Fluttertoast.showToast(msg: jsonData['message'],
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        textColor: Colors.white,
+        fontSize: 16.0);
+    }
+    else{
+      setState(() {});
+      Navigator.pop(context);
+      fetchData();
+    }
+    return null;
     }
     else{ throw Exception('Failed to create album'); }
   }
-  // DELETE THIS TO MAKE THIS LESS COMPLICATED
-  Future updateRecipe(int id, String recipe_name, String recipe_quantity, String details) async {
+
+  Future updateRecipe(int id, String recipe_name, String recipe_quantity, String details, String type) async {
     print('here');
     final response = await   http.post(
       Uri.parse('http://127.0.0.1:8000/api/updaterecipe'),
@@ -47,19 +68,30 @@ class _RecipeState extends State<Recipe> {
         'id' : id,
         'name' : recipe_name,
         'quantity': recipe_quantity,
-        'details': details
+        'details': details,
+        'type': type
       })
     );
     if(response.statusCode == 200){
-      setState(() {});
-      Navigator.pop(context);
-      fetchData();
+      var jsonData = json.decode(response.body);
+      if(jsonData['status'] == 0){
+        Fluttertoast.showToast(msg: jsonData['message'],
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 2,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+      else{
+        setState(() {});
+        Navigator.pop(context);
+        fetchData();
+      }
       return null;
     }
     else{
       throw Exception('Failed to update record'); }
   }
-//ALSO REMoVE THIS
   Future<List> fetchData() async {
     final response = await http.get(
         Uri.parse('http://127.0.0.1:8000/api/getrecipes'));
@@ -71,6 +103,27 @@ class _RecipeState extends State<Recipe> {
     else {
       throw Exception('Failed to load data');
     }
+  }
+  Widget typetList(){
+    return DropdownButtonFormField(
+      hint: Text("Dietary Restriction"),
+      isExpanded: true,
+      items: typeItems.map((e){
+        return DropdownMenuItem(child: Text(e), value: e,);
+      }).toList(),
+      onSaved: (String? value){
+        typevalue = value!.toString();
+        setState(() {
+          typevalue;
+          typevalue;
+        });},
+      value: typevalue, onChanged: (String? value) {
+      typevalue = value!.toString();
+      setState(() {
+        typevalue;
+      });
+    },
+    );
   }
 
   Future<List> getRecipeFields(String id) async {
@@ -102,8 +155,10 @@ class _RecipeState extends State<Recipe> {
         name=jsonRec[0]["recipe_name"];
         qty=jsonRec[0]["recipe_quantity"].toString();
         details=jsonRec[0]["details"];
+        typevalue=jsonRec[0]["type"];
       }
     }
+
     _nameController.text = name;
     _detailsController.text = details;
     _qtyController.text = qty;
@@ -126,7 +181,7 @@ class _RecipeState extends State<Recipe> {
                   TextField(controller: _nameController,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), hintText: "Name"),),
-                  SizedBox(height: 10,),
+                  SizedBox(height: 10,), //for space between two controls.
                   TextField(controller: _qtyController,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), hintText: "Quantity"),),
@@ -135,15 +190,17 @@ class _RecipeState extends State<Recipe> {
                     maxLines: 4,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), hintText: "Details"),),
+                  typetList(),
+                  SizedBox(height: 10,),
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
                           if(id == null){
-                            insertRecipe(_nameController.text, _qtyController.text, _detailsController.text);
+                            insertRecipe(_nameController.text, _qtyController.text, _detailsController.text, typevalue);
                           }
                           else{
-                            updateRecipe(id, _nameController.text, _qtyController.text, _detailsController.text);
+                            updateRecipe(id, _nameController.text, _qtyController.text, _detailsController.text, typevalue);
                           }
                         });
                       },
@@ -167,8 +224,8 @@ class _RecipeState extends State<Recipe> {
   //call function deleteRecipe and pass that id to it.
   showAlertDelete(BuildContext context, int id)
   {
-    Widget cancelButton = TextButton(onPressed:  (){ Navigator.of(context).pop();}, child: Text("Cancel"));
-    Widget continueButton = TextButton(onPressed:  (){deleteRecipe(id.toString());}, child: Text("Continue"));
+    Widget cancelButton = TextButton(onPressed:  (){ Navigator.of(context, rootNavigator: true).pop(false);}, child: Text("Cancel"));
+    Widget continueButton = TextButton(onPressed:  (){deleteRecipe(id.toString()); Navigator.of(context, rootNavigator: true).pop(true);}, child: Text("Continue"));
 
     AlertDialog alertDialog = AlertDialog(
       title: Text("Alert!"),
@@ -193,7 +250,7 @@ class _RecipeState extends State<Recipe> {
     if (response.statusCode == 200) {
       print(response.body);
       setState(() {});
-      Navigator.pop(context);
+//      Navigator.pop(context);
       fetchData();
 
       return null;
@@ -208,6 +265,7 @@ class _RecipeState extends State<Recipe> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: Text("Recipe"), backgroundColor: Colors.cyan),
+      drawer: NavDrawer(),
       body: FutureBuilder(
         builder: (context, snapshot) {
           // WHILE THE CALL IS BEING MADE AKA LOADING
@@ -245,7 +303,7 @@ class _RecipeState extends State<Recipe> {
                         }, icon: Icon(Icons.edit))),
                         Expanded(child: IconButton(onPressed: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) =>Ingredients(recModal: itemModal)));
-                        }, icon: Image.asset('lib/icons/vegetables.png'))),
+                        }, icon: Image.asset('assets/images/vegetables.png'))),
                         Expanded(child: IconButton(onPressed: () {
                           setState(() {
                             showAlertDelete(context, id);

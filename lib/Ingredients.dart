@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:recipe/Recipe.dart';
+import 'package:flutter_auth/Recipe.dart';
 
 class Ingredients extends StatefulWidget{
   const Ingredients({super.key, required this.recModal});
@@ -14,22 +14,24 @@ class Ingredients extends StatefulWidget{
   State<StatefulWidget> createState() => _IngredientsState();
 }
 
-class _IngredientsState extends State<Ingredients> {
-  final TextEditingController _nameController = TextEditingController();
+ class _IngredientsState extends State<Ingredients> {
   final TextEditingController _qtyController = TextEditingController();
   final TextEditingController _carbController = TextEditingController();
   final TextEditingController _proteinController = TextEditingController();
   final TextEditingController _expiryController = TextEditingController();
   final TextEditingController _remarkController = TextEditingController();
+  var ingData;
+  String dding = "1";
+
 // custom function
-Future insertIngredient(String name, String qty, String carbs, String proteins, String expiry, String remark) async{
+Future insertIngredient(String ing_id, String qty, String carbs, String proteins, String expiry, String remark) async{
     final response = await http.post(Uri.parse('http://127.0.0.1:8000/api/addingredient'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
         'recipe_id': widget.recModal.recipe_id.toString(),
-        'name' : name,
+        'ing_id' : ing_id,
         'quantity': qty,
         'carbs': carbs,
         'protein': proteins,
@@ -44,7 +46,7 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
       ingredientData();
       return null;
     }
-    else{ throw Exception('Failed to create album'); }
+    else{ throw Exception('Failed to work'); }
   }
   
   Future<List> ingredientData() async{
@@ -52,41 +54,80 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
     if (response.statusCode == 200) {
       var jsonData = json.decode(response.body);
       List jsonRec = jsonData["data"];
+      ingData = jsonData["im"];
       return jsonRec;
     }
     else {
       throw Exception('Failed to load data');
-
     }
   }
 
-  Future updateIngredient(int id, String name, String qty, String carbs, String proteins, String expiry, String remark) async{
-    final response = await http.post(Uri.parse('http://127.0.0.1:8000/api/updateingredient'),
-      headers: <String, String>{
-        'Content-Type':'application/json;charset=UTF-8',
-      },
-      body: jsonEncode(<String,dynamic>{
-        'id':  id,
-        'name': name,
-        'quantity': qty,
-        'carbs': carbs,
-        'protein': proteins,
-        'expiry_date': expiry,
-        'remark': remark
-      }),
+   // Define a function to update an ingredient with the provided data
+   Future updateIngredient(int id, String ing_id, String qty, String carbs, String proteins, String expiry, String remark) async {
+     // Send an HTTP POST request to update the ingredient
+     final response = await http.post(
+       Uri.parse('http://127.0.0.1:8000/api/updateingredient'),
+       headers: <String, String>{
+         'Content-Type': 'application/json;charset=UTF-8',
+       },
+       body: jsonEncode(<String, dynamic>{
+         'id': id,
+         'ing_id': ing_id,
+         'quantity': qty,
+         'carbs': carbs,
+         'protein': proteins,
+         'expiry_date': expiry,
+         'remark': remark
+       }),
+     );
+     // Check if the HTTP response status code is 200 (OK)
+     if (response.statusCode == 200) {
+       // If successful, print the response body
+       print(response.body);
+       // Update the state of the widget (Assuming this code is inside a StatefulWidget)
+       setState(() {});
+       // Close the current screen and return to the previous screen (Assuming you're using a Navigator)
+       Navigator.pop(context);
+       // Call a function to refresh ingredient data
+       ingredientData();
+       // Return null to signify a successful update
+       return null;
+     } else {
+       // If the HTTP response status code is not 200, throw an exception
+       throw Exception('Failed to update ingredient');
+     }
+   }
+
+  Widget ingList(){
+    List<IngObj> ingList = List<IngObj>.from(
+        ingData.map((i){
+          return IngObj.fromJSON(i);
+        })
     );
-    if(response.statusCode == 200){
-      print(response.body);
-      setState(() {});
-      Navigator.pop(context);
-      ingredientData();
-      return null;
-    }
-    else{ throw Exception('Failed to create album'); }
+    return DropdownButtonFormField(
+      hint: Text("Select Ingredient"),
+      isExpanded: true,
+      items: ingList.map((e){
+        return DropdownMenuItem(child: Text(e.name), value: e.id,);
+      }).toList(),
+      onSaved: (String? value){
+        dding = value!.toString();
+        setState(() {
+          dding;
+          print(dding);
+        });},
+      value: dding, onChanged: (String? value) {
+      dding = value!.toString();
+      setState(() {
+        dding;
+        print(dding);
+      });
+    },
+    );
+
   }
-  
+
   void showBottomSheet(int? id) async{
-    String name="";
     String qty="";
     String carbs="";
     String protien="";
@@ -98,7 +139,7 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
       if(response.statusCode == 200){
         var jsonData = json.decode(response.body);
         List jsonRec = jsonData["data"];
-        name = jsonRec[0]["ingredient_name"];
+        dding = jsonRec[0]["ing_id"].toString();
         qty = jsonRec[0]["quantity"].toString();
         carbs = jsonRec[0]["carbs"].toString();
         protien = jsonRec[0]["protein"].toString();
@@ -109,7 +150,6 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
         throw Exception('Failed to load data');
       }
     }
-    _nameController.text = name;
     _qtyController.text =qty;
     _carbController.text =carbs;
     _proteinController.text = protien;
@@ -131,9 +171,7 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
               child: Column(mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  TextField(controller: _nameController,
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(), hintText: "Name"),),
+                  ingList(),
                   SizedBox(height: 10,),
                   TextField(controller: _qtyController,
                     decoration: InputDecoration(
@@ -173,10 +211,10 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
                       onPressed: () {
                         setState(() {
                           if(id == null){
-                            insertIngredient(_nameController.text, _qtyController.text, _carbController.text, _proteinController.text, _expiryController.text, _remarkController.text);
+                            insertIngredient(dding, _qtyController.text, _carbController.text, _proteinController.text, _expiryController.text, _remarkController.text);
                           }
                           else{
-                            updateIngredient(id, _nameController.text, _qtyController.text, _carbController.text, _proteinController.text, _expiryController.text, _remarkController.text);
+                            updateIngredient(id, dding, _qtyController.text, _carbController.text, _proteinController.text, _expiryController.text, _remarkController.text);
                           }
                         });
                       },
@@ -198,8 +236,8 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
 
   //function to delete the ingredients.. it will alert first to user, after user confirm the delete action it will delete the record and refresh the screen
   void showAlertDelete(BuildContext context, int id){
-    Widget cancelButon = TextButton(onPressed:  (){ Navigator.of(context).pop();}, child: Text("Cancel"));
-    Widget continueButton = TextButton(onPressed: (){deleteIngredient(id.toString());}, child: Text("Continue"));
+    Widget cancelButon = TextButton(onPressed:  (){ Navigator.of(context, rootNavigator: true).pop(false);}, child: Text("Cancel"));
+    Widget continueButton = TextButton(onPressed: (){deleteIngredient(id.toString()); Navigator.of(context, rootNavigator: true).pop(true);}, child: Text("Continue"));
 
     AlertDialog alertDialog = AlertDialog(
       title: Text("Alert!"),
@@ -225,7 +263,6 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
     if(response.statusCode == 200){
       print(response.body);
       setState(() {});
-      Navigator.pop(context);
       ingredientData();
     }
   }
@@ -259,7 +296,7 @@ Future insertIngredient(String name, String qty, String carbs, String proteins, 
                 return Card(margin: EdgeInsets.all(5),
                   child: ListTile(
                     title: Padding(padding: EdgeInsets.symmetric(vertical: 5),
-                      child: Text(snapshot.data![index]['ingredient_name'],
+                      child: Text(snapshot.data![index]['name'],
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
@@ -306,4 +343,15 @@ class IngredientModel{
   final String Ing_remark;// not mutable
 
  const IngredientModel(this.recipe_id, this.ing_id, this.Ing_name, this.Ing_qty, this.Ing_carbs, this.Ing_proteins, this.Ing_expiry, this.Ing_remark);
+}
+
+class IngObj{
+  String id, name;
+  IngObj({required this.id, required this.name});
+  factory IngObj.fromJSON(Map<String, dynamic> json){
+    return IngObj(
+      id:json["id"].toString(),
+      name:json["name"],
+    );
+  }
 }

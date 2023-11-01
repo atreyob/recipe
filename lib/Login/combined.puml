@@ -1,0 +1,84 @@
+@startuml
+
+package "Backend (PHP)" {
+
+  class FunctionAPI {
+    +getRecipes(): Response
+    +addRecipe(): Response
+    +getRecipeById($id): Response
+    +updateRecipe( ): Response
+    +deleteRecipe($id): Response
+  }
+
+  class IngredientAPI {
+    +getIngredients(): Response
+    +addIngredient(): Response
+    +getIngredientById($id): Response
+    +updateIngredient(): Response
+    +deleteIngredient($id): Response
+  }
+
+  class Recipe {
+    +recipe_name
+    +recipe_quantity
+    +details
+    +user_id
+    +is_active
+  }
+
+  class Ingredient {
+    +ingredient_name
+    +quantity
+    +carbs
+    +protein
+    +recipeID
+    +expiry_date
+    +remark
+
+  }
+
+  FunctionAPI --> Recipe: Uses
+  IngredientAPI --> Ingredient: Uses
+
+}
+
+package "Frontend (Dart)" {
+
+  class RecipeListView {
+    +displayRecipes(List<Recipe> recipes)
+  }
+
+  class RecipeDetailView {
+    +displayRecipeDetails(Recipe recipe)
+  }
+
+  class IngredientListView {
+    +displayIngredients(List<Ingredient> ingredients)
+  }
+
+  class IngredientDetailView {
+    +displayIngredientDetails(Ingredient ingredient)
+  }
+
+  class RecipeViewModel {
+    +fetchRecipes()
+    +addRecipe(Recipe recipe)
+    +updateRecipe(Recipe recipe)
+    +deleteRecipe(int id)
+  }
+
+  class IngredientViewModel {
+    +fetchIngredients(int recipeId)
+    +addIngredient(Ingredient ingredient)
+    +updateIngredient(Ingredient ingredient)
+    +deleteIngredient(int id)
+  }
+
+  RecipeListView ..> RecipeViewModel: Uses
+  RecipeDetailView ..> RecipeViewModel: Uses
+  IngredientListView ..> IngredientViewModel: Uses
+  IngredientDetailView ..> IngredientViewModel: Uses
+
+}
+
+@enduml
